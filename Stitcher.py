@@ -1,25 +1,31 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 import glob
 import sys
+
 
 class Stitcher():
     def __init__(self):
         self.detector = cv2.BRISK_create(thresh=30, octaves = 3 )
         self.matcher = cv2.BFMatcher(cv2.NORM_HAMMING)
 
-
     def blend(self, img1, img2):
+        """
+        blends two images by taking the maximum value across images at each pixel
+        """
         out = cv2.max(img1,img2)
         #out = np.median(np.array([ img1, img2 ]), axis=0 )
         return out
 
+    def alignandblend(self, img1, img2, outdims, ratio = 0.75):
+        """
+        Finds a homography between two images using
+        matching features. Applies homography and blends the images.
 
-    def alignAndBlend(self, img1, img2, outdims, ratio = 0.75):
+        ratio: used for Lowe's tests on matches
+        """
         kp1, des1 = self.detector.detectAndCompute(img1,None)
         kp2, des2 = self.detector.detectAndCompute(img2,None)
-
         matches = self.matcher.knnMatch(des2,des1, k=2)
 
         goodmatches = []
@@ -28,7 +34,7 @@ class Stitcher():
                 goodmatches.append(m)
 
         if len(goodmatches)<4 :
-            return self.alignAndBlend(img1, img2, outdims, ratio+0.05)
+            return self.alignandblend(img1, img2, outdims, ratio+0.05)
 
         X1=[]
         X2=[]
@@ -38,20 +44,20 @@ class Stitcher():
         X1 = np.array(X1)
         X2 = np.array(X2)
 
-        #find homography using RANSAC
+        # find homography from img1 to img2 using RANSAC
         H1,_ = cv2.findHomography(X2.astype(np.float32), X1.astype(np.float32), cv2.RANSAC)
+        # apply homography to img1
         img3 = cv2.warpPerspective(img1, H1, outdims)
 
-        #blend the two images
+        # blend the two warped img1 with img2
         img3 = self.blend(img2,img3)
 
         return img3
 
-
-    def cropZeros(self, img):
-        '''
+    def cropzeros(self, img):
+        """
         Crops an image to nonzero pixels
-        '''
+        """
 
         gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
         _,thresh = cv2.threshold(gray,1,255,cv2.THRESH_BINARY)
@@ -63,15 +69,13 @@ class Stitcher():
         crop = img[y:y + h, x:x + w]
         return crop
 
-
     def stitch(self, directory, out):
-        '''
+        """
         Stitch together images found in directory
         Assumes pictures are taken from left to right
         Saves panorama as 'out.jpg'
-        :param directory: 
-        :return: 
-        '''
+        """
+
         imgs = glob.glob(directory+'*.jpg')
         n = len(imgs)
         mid = n//2
@@ -79,10 +83,11 @@ class Stitcher():
         midleft = reversed(imgs[:mid])
 
         imgm = cv2.imread(imgs[mid])
+
+        # create a new image big enough to fit the panorama
         w,h,_ = imgm.shape
         outh = 2*w
         outw = 8*h
-
         imgf = np.zeros((outh,outw, 3))
         imgf[outh/4:outh/4+w, outw/2:outw/2+h, :] = imgm[:,:,:]
         imgm=imgf.astype(np.uint8)
@@ -90,14 +95,14 @@ class Stitcher():
         for img in midright:
             print(img)
             imgl = cv2.imread(img)
-            imgm = self.alignAndBlend( imgl, imgm, (outw,outh), 0.6 )
+            imgm = self.alignandblend( imgl, imgm, (outw,outh), 0.6 )
 
         for img in midleft:
             print(img)
             imgl = cv2.imread(img)
-            imgm = self.alignAndBlend( imgl, imgm, (outw,outh), 0.6 )
+            imgm = self.alignandblend( imgl, imgm, (outw,outh), 0.6 )
 
-        imgout = self.cropZeros(imgm)
+        imgout = self.cropzeros(imgm)
 
         cv2.imwrite(out,imgout)
         print("done")
