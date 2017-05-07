@@ -5,13 +5,19 @@ import sys
 
 
 class Stitcher():
+    """
+    Stitcher
+    Uses BRISK feature detector and brute-force feature matcher
+    
+    """
+
     def __init__(self):
         self.detector = cv2.BRISK_create(thresh=30, octaves = 3 )
         self.matcher = cv2.BFMatcher(cv2.NORM_HAMMING)
 
     def blend(self, img1, img2):
         """
-        blends two images by taking the maximum value across images at each pixel
+        Blends two images by taking the maximum value across images at each pixel
         """
         out = cv2.max(img1,img2)
         #out = np.median(np.array([ img1, img2 ]), axis=0 )
@@ -33,8 +39,9 @@ class Stitcher():
             if( m.distance < n.distance * ratio ):
                 goodmatches.append(m)
 
+        # increase ratio if not enough good matches
         if len(goodmatches)<4 :
-            return self.alignandblend(img1, img2, outdims, ratio+0.05)
+            return self.alignandblend(img1, img2, outdims, ratio+0.01)
 
         X1=[]
         X2=[]
@@ -46,6 +53,7 @@ class Stitcher():
 
         # find homography from img1 to img2 using RANSAC
         H1,_ = cv2.findHomography(X2.astype(np.float32), X1.astype(np.float32), cv2.RANSAC)
+
         # apply homography to img1
         img3 = cv2.warpPerspective(img1, H1, outdims)
 

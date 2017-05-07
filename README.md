@@ -1,5 +1,6 @@
 # stitcher
 Simple panorama creator using openCV
+
 Assumes pictures are taken from left to right
 
 # Usage

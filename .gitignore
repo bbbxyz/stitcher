@@ -1,6 +1,7 @@
 # exclude everything except Stitcher.py and readme for now
 *
 !example/*
+!example_panorama.jpg
 !.gitignore
 !Stitcher.py
 !README.MD
