@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import glob
 import sys
-
+import itertools
 
 class Stitcher():
     """
@@ -40,7 +40,7 @@ class Stitcher():
                 goodmatches.append(m)
 
         # increase ratio if not enough good matches
-        if len(goodmatches)<4 :
+        if len(goodmatches)<12 :
             return self.alignandblend(img1, img2, outdims, ratio+0.02)
 
         X1=[]
@@ -72,11 +72,11 @@ class Stitcher():
         """
 
         gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-        _,thresh = cv2.threshold(gray,1,255,cv2.THRESH_BINARY)
+        _,thresh = cv2.threshold(gray,0,255,cv2.THRESH_BINARY)
         _, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         if len(contours) == 0:
             return np.zeros((0,0,3))
-        cnt = contours[0]
+        cnt = np.concatenate(contours)
         x, y, w, h = cv2.boundingRect(cnt)
         crop = img[y:y + h, x:x + w]
         return crop
@@ -99,26 +99,29 @@ class Stitcher():
         # create a new image big enough to fit the panorama
         w,h,_ = imgm.shape
         outh = 2*w
-        outw = 8*h
+        outw = 4*h
         imgf = np.zeros((outh,outw, 3))
         imgf[outh/4:outh/4+w, outw/2:outw/2+h, :] = imgm[:,:,:]
         imgm=imgf.astype(np.uint8)
 
         for img in midright:
-            print(img)
             imgl = cv2.imread(img)
-            w,h,_ = imgl.shape
-            if w>0 and h>0 :
-                imgm = self.alignandblend( imgl, imgm, (outw,outh), 0.6 )
+            if imgl is not None:
+                w,h,_ = imgl.shape
+                if w>0 and h>0 :
+                    print(img)
+                    imgm = self.alignandblend( imgl, imgm, (outw,outh), 0.6 )
 
         for img in midleft:
-            print(img)
             imgl = cv2.imread(img)
-            w, h, _ = imgl.shape
-            if w > 0 and h > 0:
-                imgm = self.alignandblend( imgl, imgm, (outw,outh), 0.6 )
+            if not imgl is  None:
+                w, h, _ = imgl.shape
+                if w > 0 and h > 0:
+                    print(img)
+                    imgm = self.alignandblend( imgl, imgm, (outw,outh), 0.6 )
 
         imgout = self.cropzeros(imgm)
+        #imgout = imgm
 
         cv2.imwrite(out,imgout)
         print("done")
