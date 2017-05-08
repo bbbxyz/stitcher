@@ -107,12 +107,16 @@ class Stitcher():
         for img in midright:
             print(img)
             imgl = cv2.imread(img)
-            imgm = self.alignandblend( imgl, imgm, (outw,outh), 0.6 )
+            w,h,_ = imgl.shape
+            if w>0 and h>0 :
+                imgm = self.alignandblend( imgl, imgm, (outw,outh), 0.6 )
 
         for img in midleft:
             print(img)
             imgl = cv2.imread(img)
-            imgm = self.alignandblend( imgl, imgm, (outw,outh), 0.6 )
+            w, h, _ = imgl.shape
+            if w > 0 and h > 0:
+                imgm = self.alignandblend( imgl, imgm, (outw,outh), 0.6 )
 
         imgout = self.cropzeros(imgm)
 
