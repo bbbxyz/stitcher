@@ -3,7 +3,7 @@ import sys
 import Stitcher
 import os, shutil
 
-def extractframes(vid):
+def extractframes(vid, fskip = 5):
     dir = vid[:-4]+"/"
     os.mkdir(dir)
     vidcap = cv2.VideoCapture(vid)
@@ -12,7 +12,7 @@ def extractframes(vid):
     success = True
     while success:
         success, image = vidcap.read()
-        if count%1 == 0:
+        if count%fskip == 0:
          cv2.imwrite(dir+"%4d.jpg" % count, image)  # save frame as JPEG file
         count += 1
     return dir
@@ -25,7 +25,7 @@ def main():
         exit()
     vid = sys.argv[1]
     out = sys.argv[2]
-    dir = extractframes(vid)
+    dir = extractframes(vid, 3)
     stitcher = Stitcher.Stitcher()
     stitcher.stitch(dir, out)
     shutil.rmtree(dir)
