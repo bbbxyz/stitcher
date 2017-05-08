@@ -41,7 +41,7 @@ class Stitcher():
 
         # increase ratio if not enough good matches
         if len(goodmatches)<4 :
-            return self.alignandblend(img1, img2, outdims, ratio+0.01)
+            return self.alignandblend(img1, img2, outdims, ratio+0.02)
 
         X1=[]
         X2=[]
@@ -52,7 +52,11 @@ class Stitcher():
         X2 = np.array(X2)
 
         # find homography from img1 to img2 using RANSAC
-        H1,_ = cv2.findHomography(X2.astype(np.float32), X1.astype(np.float32), cv2.RANSAC)
+        H1,used = cv2.findHomography(X2.astype(np.float32), X1.astype(np.float32), cv2.RANSAC)
+
+        # return original image if no homography found
+        if sum(used) == 0 :
+            return img2
 
         # apply homography to img1
         img3 = cv2.warpPerspective(img1, H1, outdims)

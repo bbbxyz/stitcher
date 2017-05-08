@@ -12,7 +12,7 @@ def extractframes(vid):
     success = True
     while success:
         success, image = vidcap.read()
-        if count%2 == 0:
+        if count%1 == 0:
          cv2.imwrite(dir+"%4d.jpg" % count, image)  # save frame as JPEG file
         count += 1
     return dir
