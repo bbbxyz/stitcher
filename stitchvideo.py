@@ -2,12 +2,13 @@ import cv2
 import sys
 import Stitcher
 import os, shutil
+import numpy as np
 
-def extractframes(vid, fskip = 5):
+def extractframes(vid, fskip = 15):
     dir = vid[:-4]+"/"
     os.mkdir(dir)
     vidcap = cv2.VideoCapture(vid)
-    success, image = vidcap.read()
+
     count = 0
     success = True
     while success:
@@ -25,9 +26,15 @@ def main():
         exit()
     vid = sys.argv[1]
     out = sys.argv[2]
-    dir = extractframes(vid, 3)
+
+    # extract frames from video and store then in temporary dir
+    dir = extractframes( vid )
+
+    # stitch frames together
     stitcher = Stitcher.Stitcher()
     stitcher.stitch(dir, out)
+
+    # remove temp. dir
     shutil.rmtree(dir)
 
 

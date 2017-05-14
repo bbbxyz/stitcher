@@ -8,7 +8,6 @@ class Stitcher():
     """
     Stitcher
     Uses BRISK feature detector and brute-force feature matcher
-    
     """
 
     def __init__(self):
@@ -40,8 +39,10 @@ class Stitcher():
                 goodmatches.append(m)
 
         # increase ratio if not enough good matches
-        if len(goodmatches)<12 :
-            return self.alignandblend(img1, img2, outdims, ratio+0.02)
+        if len(goodmatches)<4 :
+            if ratio > 1 :
+                return img2
+            return self.alignandblend(img1, img2, outdims, ratio+0.05)
 
         X1=[]
         X2=[]
@@ -99,7 +100,7 @@ class Stitcher():
         # create a new image big enough to fit the panorama
         w,h,_ = imgm.shape
         outh = 2*w
-        outw = 4*h
+        outw = 5*h
         imgf = np.zeros((outh,outw, 3))
         imgf[outh/4:outh/4+w, outw/2:outw/2+h, :] = imgm[:,:,:]
         imgm=imgf.astype(np.uint8)
@@ -110,7 +111,7 @@ class Stitcher():
                 w,h,_ = imgl.shape
                 if w>0 and h>0 :
                     print(img)
-                    imgm = self.alignandblend( imgl, imgm, (outw,outh), 0.6 )
+                    imgm = self.alignandblend( imgl, imgm, (outw,outh), 0.65 )
 
         for img in midleft:
             imgl = cv2.imread(img)
@@ -118,7 +119,7 @@ class Stitcher():
                 w, h, _ = imgl.shape
                 if w > 0 and h > 0:
                     print(img)
-                    imgm = self.alignandblend( imgl, imgm, (outw,outh), 0.6 )
+                    imgm = self.alignandblend( imgl, imgm, (outw,outh), 0.65 )
 
         imgout = self.cropzeros(imgm)
         #imgout = imgm
