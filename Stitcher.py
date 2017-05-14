@@ -3,6 +3,7 @@ import numpy as np
 import glob
 import sys
 import itertools
+import os
 
 class Stitcher():
     """
@@ -22,7 +23,7 @@ class Stitcher():
         #out = np.median(np.array([ img1, img2 ]), axis=0 )
         return out
 
-    def alignandblend(self, img1, img2, outdims, ratio = 0.75):
+    def alignandblend(self, img1, img2, outdims, ratio=0.7):
         """
         Finds a homography between two images using
         matching features. Applies homography and blends the images.
@@ -86,11 +87,15 @@ class Stitcher():
         """
         Stitch together images found in directory
         Assumes pictures are taken from left to right
-        Saves panorama as 'out.jpg'
         """
 
         imgs = glob.glob(directory+'*.jpg')
         n = len(imgs)
+
+        if n == 0 :
+            print("Directory does not contain images")
+            exit(1)
+
         mid = n//2
         midright = imgs[mid+1:]
         midleft = reversed(imgs[:mid])
@@ -111,7 +116,7 @@ class Stitcher():
                 w,h,_ = imgl.shape
                 if w>0 and h>0 :
                     print(img)
-                    imgm = self.alignandblend( imgl, imgm, (outw,outh), 0.65 )
+                    imgm = self.alignandblend( imgl, imgm, (outw,outh))
 
         for img in midleft:
             imgl = cv2.imread(img)
@@ -119,10 +124,9 @@ class Stitcher():
                 w, h, _ = imgl.shape
                 if w > 0 and h > 0:
                     print(img)
-                    imgm = self.alignandblend( imgl, imgm, (outw,outh), 0.65 )
+                    imgm = self.alignandblend( imgl, imgm, (outw,outh))
 
         imgout = self.cropzeros(imgm)
-        #imgout = imgm
 
         cv2.imwrite(out,imgout)
         print("done")
@@ -132,8 +136,14 @@ def main():
     if len(sys.argv) < 3:
         print("Not enough input arguments")
         print("python Stitcher.py [image directory] [output image]")
-        exit()
+        exit(2)
     directory = sys.argv[1]
+
+    # check that directory contains images
+    if not os.path.exists(directory):
+        print("Image directory does not exist")
+        exit(1)
+
     out = sys.argv[2]
     stitcher = Stitcher()
     stitcher.stitch(directory, out)
