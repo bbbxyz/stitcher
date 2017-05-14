@@ -5,8 +5,8 @@ import os, shutil
 import numpy as np
 
 def extractframes(vid, fskip = 15):
-    dir = vid[:-4]+"/"
-    os.mkdir(dir)
+    directory = vid[:-4]+"/"
+    os.mkdir(directory)
     vidcap = cv2.VideoCapture(vid)
 
     count = 0
@@ -14,9 +14,9 @@ def extractframes(vid, fskip = 15):
     while success:
         success, image = vidcap.read()
         if count%fskip == 0:
-         cv2.imwrite(dir+"%4d.jpg" % count, image)  # save frame as JPEG file
+         cv2.imwrite(directory+"%4d.jpg" % count, image)  # save frame as JPEG file
         count += 1
-    return dir
+    return directory
 
 
 def main():
@@ -28,14 +28,14 @@ def main():
     out = sys.argv[2]
 
     # extract frames from video and store then in temporary dir
-    dir = extractframes( vid )
+    directory = extractframes( vid )
 
     # stitch frames together
     stitcher = Stitcher.Stitcher()
-    stitcher.stitch(dir, out)
+    stitcher.stitch(directory, out)
 
     # remove temp. dir
-    shutil.rmtree(dir)
+    shutil.rmtree(directory)
 
 
 if __name__ == "__main__":

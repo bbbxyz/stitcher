@@ -133,10 +133,10 @@ def main():
         print("Not enough input arguments")
         print("python Stitcher.py [image directory] [output image]")
         exit()
-    dir = sys.argv[1]
+    directory = sys.argv[1]
     out = sys.argv[2]
     stitcher = Stitcher()
-    stitcher.stitch(dir, out)
+    stitcher.stitch(directory, out)
 
 
 if __name__ == "__main__":
